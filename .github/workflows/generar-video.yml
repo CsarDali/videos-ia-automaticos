@@ -10,28 +10,53 @@ permissions:
 jobs:
   generar-video:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Preparar FFmpeg
+      - name: Instalar herramientas en la nube
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          sudo apt-get install -y ffmpeg python3-pip python3-venv fonts-dejavu-core
 
-      - name: Crear video de prueba
+      - name: Preparar voz en español
         run: |
-          mkdir -p salida
+          python3 -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install piper-tts
+
+      - name: Generar narracion
+        run: |
+          mkdir -p salida modelo
+          curl -L --fail \
+            -o modelo/voz.onnx \
+            https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/voice.onnx
+          curl -L --fail \
+            -o modelo/voz.onnx.json \
+            https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/voice.onnx.json
+          echo "Hola. Hoy conoceremos una herramienta de inteligencia artificial que puede ayudarte a crear contenido de forma más rápida y sencilla." > salida/guion.txt
+          .venv/bin/python -m piper \
+            --model modelo/voz.onnx \
+            --config modelo/voz.onnx.json \
+            --input_file salida/guion.txt \
+            --output_file salida/narracion.wav
+
+      - name: Crear video vertical con narracion
+        run: |
           ffmpeg -y \
             -f lavfi \
-            -i "color=c=0x101827:s=1080x1920:r=30:d=10" \
-            -vf "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='Prueba de video automatico':fontcolor=white:fontsize=64:x=(w-text_w)/2:y=(h-text_h)/2" \
+            -i "color=c=0x101827:s=1080x1920:r=30:d=15" \
+            -i salida/narracion.wav \
+            -vf "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='Herramientas de IA':fontcolor=white:fontsize=72:x=(w-text_w)/2:y=h*0.38,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text='Ideas para crear mejor':fontcolor=0x55D6BE:fontsize=42:x=(w-text_w)/2:y=h*0.48" \
             -c:v libx264 \
+            -tune stillimage \
+            -c:a aac \
+            -b:a 192k \
+            -shortest \
             -pix_fmt yuv420p \
             -movflags +faststart \
-            salida/video-prueba.mp4
+            salida/video-con-voz.mp4
 
       - name: Guardar video generado
         uses: actions/upload-artifact@v4
         with:
-          name: video-de-prueba
-          path: salida/video-prueba.mp4
+          name: video-con-voz
+          path: salida/video-con-voz.mp4
           retention-days: 3
