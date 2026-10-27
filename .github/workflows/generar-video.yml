@@ -36,7 +36,8 @@ jobs:
             --model modelo/voz.onnx \
             --config modelo/voz.onnx.json \
             --input_file salida/guion.txt \
-            --output_file salida/narracion.wav
+            --output_file salida/narracion.wav \
+            --length_scale 0.85
 
       - name: Crear video vertical con narracion
         run: |
