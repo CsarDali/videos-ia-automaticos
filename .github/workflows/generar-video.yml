@@ -1,0 +1,37 @@
+
+name: Generar video automatico
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generar-video:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Preparar FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+
+      - name: Crear video de prueba
+        run: |
+          mkdir -p salida
+          ffmpeg -y \
+            -f lavfi \
+            -i "color=c=0x101827:s=1080x1920:r=30:d=10" \
+            -vf "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='Prueba de video automatico':fontcolor=white:fontsize=64:x=(w-text_w)/2:y=(h-text_h)/2" \
+            -c:v libx264 \
+            -pix_fmt yuv420p \
+            -movflags +faststart \
+            salida/video-prueba.mp4
+
+      - name: Guardar video generado
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-de-prueba
+          path: salida/video-prueba.mp4
+          retention-days: 3
