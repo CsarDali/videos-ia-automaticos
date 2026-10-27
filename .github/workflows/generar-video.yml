@@ -27,10 +27,10 @@ jobs:
           mkdir -p salida modelo
           curl -L --fail \
             -o modelo/voz.onnx \
-            https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/voice.onnx
+            https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/es_MX-claude-high.onnx
           curl -L --fail \
             -o modelo/voz.onnx.json \
-            https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/voice.onnx.json
+            https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/es_MX-claude-high.onnx.json
           echo "Hola. Hoy conoceremos una herramienta de inteligencia artificial que puede ayudarte a crear contenido de forma más rápida y sencilla." > salida/guion.txt
           .venv/bin/python -m piper \
             --model modelo/voz.onnx \
